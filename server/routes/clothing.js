@@ -1,34 +1,53 @@
 const express = require('express');
 const fs = require('fs');
+const { json } = require('body-parser');
+const fsPromises = require('fs').promises;
 const datafile = 'server/data/clothing.json';
 const router = express.Router();
 
 /* GET all clothing */
 router.route('/')
-  .get(function(req, res) {
+  .get(async function(req, res) {
     
-    getClothingData()
-      .then(data => {
-        console.log('Returning clothing data to brownser.');
-        res.send(data);
-      })
-      .catch(error => res.status(500).send(error))
-      .finally(() => console.log('All done processing promise'));
+    try {
+      let data = await getClothingData();
+      console.log('Returning async data');
+      res.send(data);
+    }
+    catch(error){
+      res.status(500).send(error);
+    }
 
-    console.log('Doing more work');
+
+    // getClothingData()
+    //   .then(data => {
+    //     console.log('Returning clothing data to brownser.');
+    //     res.send(data);
+    //   })
+    //   .catch(error => res.status(500).send(error))
+    //   .finally(() => console.log('All done processing promise'));
+
+    console.log('Doing more work'); //not async, runs first.  Async, runs last.
   });
 
-function getClothingData() {
-  return new Promise((resolve, reject) => {
-    fs.readFile(datafile, 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        let clothingData = JSON.parse(data);
-        resolve(clothingData);
-      }
-    });
-  });
+async function getClothingData() {
+ 
+  let rawData = await fsPromises.readFile(datafile, 'utf8')
+  let clothingData = JSON.parse(rawData);
+  console.log(clothingData);
+ 
+  return clothingData;
+
+  // return new Promise((resolve, reject) => {
+  //   fs.readFile(datafile, 'utf8', (err, data) => {
+  //     if (err) {
+  //       reject(err);
+  //     } else {
+  //       let clothingData = JSON.parse(data);
+  //       resolve(clothingData);
+  //     }
+  //   });
+  // });
 }
 
 module.exports = router;
